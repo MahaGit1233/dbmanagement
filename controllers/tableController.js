@@ -16,7 +16,10 @@ const addTable = async (req, res) => {
       schema[field.name] = { type: DataTypes[field.type.toUpperCase()] };
     });
 
-    sequelize.define(tableName, schema, { freezeTableName: true });
+    sequelize.define(tableName, schema, {
+      freezeTableName: true,
+      timestamps: true,
+    });
     await sequelize.sync();
     res.status(201).send("Table created successfully");
   } catch (err) {
@@ -40,8 +43,8 @@ const getAllTables = async (req, res) => {
 const getFields = async (req, res) => {
   const { table } = req.params;
   try {
-    const [results] = await sequelize.query(`SELECT * FROM "${table}" LIMIT 1`);
-    const fields = results.length > 0 ? Object.keys(results[0]) : [];
+    const [results] = await sequelize.query(`DESCRIBE \`${table}\``);
+    const fields = results.map((row) => row.Field).filter((f) => f !== "id");
     res.json(fields);
   } catch (err) {
     console.error(err);
